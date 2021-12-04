@@ -1,0 +1,21 @@
+version: "3.7"
+services:
+  coder:
+    build: .
+    ports:
+      - "8443:8443"
+    networks:
+      - default
+    volumes: 
+      - home:/home/default
+      - linuxbrew:/home/linuxbrew
+      - opt:/opt
+      - /var/run/docker.sock:/var/run/docker.sock
+    env_file:
+      - .env
+volumes:
+  home:
+  linuxbrew:
+  opt:
+networks:
+  default:

@@ -1,0 +1,32 @@
+#!/usr/bin/with-contenv bash
+
+DEDAULT_USER=`id -un $PUID`
+
+ln -nfs /home/default /home/$USER
+
+usermod -l $USER -d /home/$USER $DEDAULT_USER
+sed -i'.bak' "s|s6-setuidgid $DEDAULT_USER|s6-setuidgid $USER|" /etc/services.d/code-server/run
+sed -i'.bak' "s|/config/workspace|/home/$USER|" /etc/services.d/code-server/run
+
+echo "$USER ALL=(ALL) NOPASSWD: ALL" >| /etc/sudoers.d/default
+chsh -s $(which zsh) $USER
+
+if [[ `grep 'export HOME=' /etc/profile` ]]; then
+    sed -i'.bak' "|export HOME=|s export HOME=/home/$USER" /etc/profile
+else
+    echo "export HOME=/home/$USER" >> /etc/profile
+fi
+
+mkdir -p /etc/zsh
+if [[ `grep 'export HOME=' /etc/zsh/zshenv` ]]; then
+    sed -i'.bak' "|export HOME=|s export HOME=/home/$USER" /etc/zsh/zshenv
+else
+    echo "export HOME=/home/$USER" >> /etc/zsh/zshenv
+fi
+
+if [[ ! -e /home/$USER/.zshrc ]]; then
+    cp /etc/zsh/newuser.zshrc.recommended /home/$USER/.zshrc
+    echo 'prompt redhat' >> /home/$USER/.zshrc
+fi
+
+chown -R $PUID:$PGID /home/default /home/$USER
